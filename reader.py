@@ -5,11 +5,13 @@ import telebot
 from telebot import types
 import urllib.parse
 import pandas as pd
+from googletrans import Translator
 
 import os
 import glob
 from dotenv import load_dotenv
 load_dotenv()
+translator = Translator()
 
 # create schedule loop
 def timerFunction():
@@ -84,17 +86,16 @@ def timerFunction():
 
         # get the html and save as image
         instant_url = 'https://ceyloncash.com/instants/?text='+urllib.parse.quote_plus(description)+'&imgurl='+mediaContent
-        hti.screenshot(url=(instant_url), save_as=file_name,size=(1080, 1080))
+        hti.screenshot(url=(mediaContent), save_as=file_name,size=(1080, 1080))
 
         # send image to the chat
         photo = open('img\\'+file_name, 'rb')
         markup = types.InlineKeyboardMarkup(row_width=2)
-        itembtn1 = types.InlineKeyboardButton('Broadcast', callback_data='/send')
-        itembtn2 = types.InlineKeyboardButton('Ignore', callback_data='/ignore')
-        itembtn3 = types.InlineKeyboardButton('Read More..', url=id)
+        itembtn1 = types.InlineKeyboardButton('Read More..', url=id)
 
-        markup.add(itembtn1, itembtn2, itembtn3)
-        bot.send_photo(chat_id,photo, caption=description+" | "+mediaContent, reply_markup=markup)
+        markup.add(itembtn1)
+        result = translator.translate(description,dest='si')
+        bot.send_photo(chat_id,mediaContent, caption=''+description+'\n\n```'+result.text+'```', reply_markup=markup,parse_mode="markdown")
 
         # If first run take only first item
         if(firstRun==1):
@@ -110,5 +111,5 @@ print('Starting scheduler, ctrl-c to exit!')
 
 # create and run the scheduler object every 5 mis
 sch = scheduler()
-sch.add_job(timerFunction, 'interval', seconds=300)
+sch.add_job(timerFunction, 'interval', seconds=10)
 sch.start()
